@@ -1,0 +1,974 @@
+﻿<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>کافه وگ</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom font for better Persian display */
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #333; /* Dark gray background for the overall site */
+            color: #f0f0f0; /* Light gray text color */
+            transition: background-color 0.5s ease; /* Smooth transition for background change */
+        }
+
+        /* Animation for the welcome message from right */
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Animation for the welcome message pulse/wave effect */
+        @keyframes waveEffect {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(5px); }
+            50% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .welcome-initial-animation {
+            animation: slideInRight 1.5s ease-out forwards;
+        }
+
+        .welcome-animated {
+            animation: waveEffect 3s ease-in-out infinite;
+        }
+
+        /* Custom styling for input focus */
+        input:focus {
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.5); /* Tailwind green-400 with opacity */
+            border-color: transparent;
+        }
+
+        /* Hide sections initially */
+        .section {
+            display: none;
+        }
+
+        /* Specific styling for the order section when active */
+        body.order-mode {
+            background-color: #000; /* Full black background for order mode */
+        }
+
+        /* Modal overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #1a1a1a; /* Dark background for modal */
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+            width: 400px;
+            color: #f0f0f0;
+            position: relative;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .modal-overlay.open .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-button:hover {
+            color: #fff;
+        }
+
+        /* Ellipsis menu styling */
+        .ellipsis-menu {
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            z-index: 100;
+        }
+
+        .ellipsis-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 9999px; /* Full rounded for circle effect */
+            transition: background-color 0.2s;
+            position: relative; /* For notification dot */
+        }
+
+        .ellipsis-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 0.1rem 0.4rem;
+            font-size: 0.75rem;
+            line-height: 1;
+            min-width: 1.25rem; /* Ensure it's a circle */
+            text-align: center;
+            transform: translate(50%, -50%);
+            display: none; /* Hidden by default */
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 0.5rem); /* Position below the button */
+            left: 0;
+            background-color: #2a2a2a;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-width: 150px;
+            overflow: hidden;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+        }
+
+        .dropdown-menu.open {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: right; /* Ensure text is right-aligned for RTL */
+            position: relative; /* For notification dot */
+        }
+
+        .dropdown-item:hover {
+            background-color: #3a3a3a;
+        }
+
+        /* Custom scrollbar for SMS list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #2a2a2a;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #555;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #777;
+        }
+
+        /* Styles for alternating confirmation box theme */
+        .confirmation-theme-dark {
+            background-color: #1a1a1a;
+            color: #f0f0f0;
+            border-color: #3a3a3a;
+        }
+        .confirmation-theme-light {
+            background-color: #f0f0f0;
+            color: #1a1a1a;
+            border-color: #ccc;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Ellipsis Menu -->
+    <div class="ellipsis-menu">
+        <button id="ellipsisButton" class="ellipsis-button">
+            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+            </svg>
+            <span id="globalSmsNotificationCount" class="notification-dot">0</span>
+        </button>
+        <div id="dropdownMenu" class="dropdown-menu">
+            <div id="addressMenuItem" class="dropdown-item">آدرس ما</div>
+            <div id="smsMenuItem" class="dropdown-item">
+                پیامک‌ها <span id="menuSmsNotificationCount" class="notification-dot">0</span>
+            </div>
+            <div id="contactMenuItem" class="dropdown-item">ارتباط با ما</div>
+        </div>
+    </div>
+
+    <!-- Header with Moon Sticker and Welcome Messages -->
+    <header class="w-full max-w-md flex items-center justify-between p-4 mb-8 relative">
+        <!-- Moon Sticker (SVG) - Improved version -->
+        <div class="flex items-center">
+            <svg class="w-10 h-10 sm:w-12 sm:h-12 text-white" fill="currentColor" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="9" opacity="0.2"></circle>
+                <circle cx="12" cy="12" r="7" opacity="0.4"></circle>
+                <circle cx="12" cy="12" r="5" opacity="0.6"></circle>
+                <circle cx="12" cy="12" r="3" opacity="0.8"></circle>
+                <circle cx="12" cy="12" r="1.5"></circle>
+            </svg>
+        </div>
+        <!-- Welcome Messages - Absolute positioning to overlap -->
+        <div class="relative flex-grow h-10 overflow-hidden">
+            <h1 id="welcomeMessage1" class="text-3xl sm:text-4xl font-extrabold text-white absolute w-full text-center whitespace-nowrap top-0 right-0 opacity-0 transform translate-x-full">
+                به کافه وگ خوش آمدید
+            </h1>
+            <h1 id="welcomeMessage2" class="text-3xl sm:text-4xl font-extrabold text-white absolute w-full text-center whitespace-nowrap top-0 right-0 opacity-0 transform translate-x-full">
+                اینجا طعم خوشبختی رو میچشی
+            </h1>
+        </div>
+    </header>
+
+    <!-- Authentication Section -->
+    <div id="authSection" class="section bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-200 text-gray-800 relative">
+        <!-- Management Info -->
+        <div class="absolute top-4 left-4 text-gray-700 text-sm sm:text-base font-semibold">
+            مدیریت: احمد ترابی
+        </div>
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6">احراز هویت</h2>
+
+        <!-- Phone Number Input -->
+        <div id="phoneInputContainer" class="mb-6 text-right">
+            <label for="phoneNumber" class="block text-gray-700 text-lg sm:text-xl font-semibold mb-3">
+                شماره موبایل خود را وارد کنید
+            </label>
+            <input
+                type="tel"
+                id="phoneNumber"
+                class="w-full px-5 py-3 border border-gray-300 rounded-xl text-center text-lg sm:text-xl placeholder-gray-400"
+                placeholder="مثال: 09123456789"
+                maxlength="11"
+                pattern="09[0-9]{9}"
+                title="شماره موبایل باید با 09 شروع شده و 11 رقم باشد"
+            >
+            <button id="sendCodeBtn" class="mt-4 w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 ease-in-out transform hover:scale-105">
+                ارسال کد تایید
+            </button>
+            <p id="phoneError" class="text-red-500 text-sm mt-2 hidden">شماره موبایل نامعتبر است.</p>
+        </div>
+
+        <!-- Code Input (Initially Hidden) -->
+        <div id="codeInputContainer" class="mb-6 hidden text-right">
+            <label for="verificationCode" class="block text-gray-700 text-lg sm:text-xl font-semibold mb-3">
+                کد 4 رقمی ارسال شده را وارد کنید
+                <span id="countdownTimer" class="text-gray-500 text-sm mr-2"></span>
+            </label>
+            <input
+                type="text"
+                id="verificationCode"
+                class="w-full px-5 py-3 border border-gray-300 rounded-xl text-center text-lg sm:text-xl placeholder-gray-400 tracking-widest"
+                placeholder="____"
+                maxlength="4"
+            >
+            <button id="verifyCodeBtn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 ease-in-out transform hover:scale-105">
+                تایید کد
+            </button>
+            <button id="resendCodeBtn" class="mt-4 w-full bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 ease-in-out transform hover:scale-105 hidden">
+                ارسال مجدد کد
+            </button>
+            <p id="codeError" class="text-red-500 text-sm mt-2 hidden">کد وارد شده صحیح نیست.</p>
+        </div>
+
+        <!-- Simulated SMS Message Box (now persistent) -->
+        <div id="smsSentMessageBox" class="bg-blue-100 text-blue-800 p-4 rounded-xl mt-6 hidden opacity-100 text-right">
+            <p class="text-lg sm:text-xl font-medium">کد تایید به بخش پیامک‌های سایت ارسال شد.</p>
+            <p class="text-sm text-blue-600 mt-1">لطفاً برای مشاهده کد، روی آیکون سه‌نقطه در بالا سمت چپ کلیک کنید.</p>
+        </div>
+    </div>
+
+    <!-- Name and Surname Input Section -->
+    <div id="nameInputSection" class="section bg-white p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-200 text-gray-800">
+        <h2 class="text-2xl sm:text-3xl font-bold mb-6">اطلاعات کاربری</h2>
+        <div class="mb-4 text-right">
+            <label for="firstName" class="block text-gray-700 text-lg sm:text-xl font-semibold mb-2">نام:</label>
+            <input type="text" id="firstName" class="w-full px-5 py-3 border border-gray-300 rounded-xl text-center text-lg sm:text-xl placeholder-gray-400" placeholder="نام خود را وارد کنید">
+        </div>
+        <div class="mb-6 text-right">
+            <label for="lastName" class="block text-gray-700 text-lg sm:text-xl font-semibold mb-2">نام خانوادگی:</label>
+            <input type="text" id="lastName" class="w-full px-5 py-3 border border-gray-300 rounded-xl text-center text-lg sm:text-xl placeholder-gray-400" placeholder="نام خانوادگی خود را وارد کنید">
+        </div>
+        <button id="continueToOrderBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-300 ease-in-out transform hover:scale-105">
+            ادامه به سفارش
+        </button>
+        <p id="nameError" class="text-red-500 text-sm mt-2 hidden">لطفاً نام و نام خانوادگی را وارد کنید.</p>
+    </div>
+
+    <!-- Order Section -->
+    <div id="orderSection" class="section bg-gray-900 p-8 rounded-2xl shadow-xl max-w-2xl w-full text-center border border-gray-700">
+        <h1 id="orderGreeting" class="text-3xl sm:text-4xl font-extrabold text-white mb-8">
+            <!-- Personalized greeting will go here -->
+        </h1>
+
+        <!-- Ice Cream Flavors Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
+            <!-- Flavor Card Template with quantity input and pricing -->
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">انبه 🥭</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="انبه" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">موز 🍌</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="موز" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">شکلات 🍫</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="شکلات" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">شاتوت 🍇</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="شاتوت" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">کارامل 🍮</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="کارامل" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+            <div class="flavor-card bg-gray-800 p-6 rounded-xl border-2 border-gray-700 flex flex-col items-center justify-center">
+                <p class="text-xl sm:text-2xl font-bold text-white mb-3">گردو 🌰</p>
+                <p class="text-sm text-gray-400 mb-2"><span class="line-through">60</span> <span class="text-green-400 text-lg font-semibold">50</span> تومان</p>
+                <div class="flex items-center space-x-2 rtl:space-x-reverse">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="decrease">-</button>
+                    <input type="number" class="flavor-quantity w-20 px-2 py-1 border border-gray-600 rounded-md text-center text-lg bg-gray-700 text-white" value="0" min="0" data-flavor="گردو" data-price="50">
+                    <button class="quantity-btn bg-gray-700 text-white px-3 py-1 rounded-full hover:bg-gray-600 transition" data-action="increase">+</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit Order Button -->
+        <button id="submitOrderBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-xl transition duration-300 ease-in-out transform hover:scale-105 text-xl sm:text-2xl shadow-lg">
+            ثبت سفارش
+        </button>
+
+        <!-- Order Confirmation Message (now persistent and alternating theme) -->
+        <div id="orderConfirmation" class="p-4 rounded-xl mt-6 hidden opacity-100 text-right border-2">
+            <p class="text-lg sm:text-xl font-medium" id="confirmationText"></p>
+
+            <div id="paymentDetails" class="mt-4">
+                <p class="text-md mb-2">برای نهایی کردن سفارش <span id="finalTotalPrice" class="text-green-500 font-bold">0</span> تومان به شماره کارت زیر واریز نمایید:</p>
+                <div class="flex items-center justify-center bg-gray-200 p-3 rounded-lg border border-gray-300">
+                    <span id="cardNumber" class="font-mono text-xl sm:text-2xl text-gray-900 select-all cursor-pointer" title="برای کپی کلیک کنید">6219861959113100</span>
+                    <button id="copyCardBtn" class="ml-4 bg-blue-500 hover:bg-blue-600 text-white text-sm px-3 py-1 rounded-md transition">کپی</button>
+                </div>
+                <p class="text-md mt-2">آقای سهراب ترابی</p>
+                <p class="text-md mt-4">و در پایان رسید فیش خود را برای تلگرام یا ایتا بفرستید و زمانی که درست شود به شما زنگ زده می‌شود تا به کافه وگ بیایید و کالای خود را دریافت کنید.</p>
+
+                <div class="flex justify-center items-center mt-6 space-x-6 rtl:space-x-reverse">
+                    <a id="telegramLink" href="#" target="_blank" class="flex flex-col items-center">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/82/Telegram_logo.svg" alt="Telegram Icon" class="w-12 h-12 rounded-full shadow-lg hover:scale-110 transition-transform">
+                        <span class="text-sm mt-2">تلگرام</span>
+                        <span class="text-xs text-gray-500 mt-1">با فیلتر شکن وارد شوید</span>
+                    </a>
+                    <a id="eitaaLink" href="#" target="_blank" class="flex flex-col items-center">
+                        <img src="https://upload.wikimedia.org/wikipedia/fa/thumb/b/b3/Eitaa_logo.png/640px-Eitaa_logo.png" alt="Eitaa Icon" class="w-12 h-12 rounded-full shadow-lg hover:scale-110 transition-transform">
+                        <span class="text-sm mt-2">ایتا</span>
+                    </a>
+                </div>
+                <div id="eitaaCopyText" class="mt-4 hidden text-center">
+                    <p class="text-sm">
+                        <span class="font-bold">متن آماده برای ایتا:</span>
+                    </p>
+                    <span id="eitaaMessageContent" class="bg-gray-100 p-2 rounded-md block mt-1 select-all cursor-pointer text-gray-800" title="برای کپی کلیک کنید"></span>
+                    <button id="copyEitaaBtn" class="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm px-3 py-1 rounded-md transition">کپی متن ایتا</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Modal -->
+    <div id="addressModal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <button class="close-button" data-modal-close>&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">آدرس ما</h3>
+            <p class="text-lg text-gray-300 mb-2">به خونه‌ی خودتون یعنی کافه وگ خوش آمدید!</p>
+            <p class="text-lg text-gray-300">آدرس: کاشمر - بلوار بسیج - بسیج ۱۰ چهار راه اول سمت چپ</p>
+            <p class="text-md text-gray-400 mt-4">ساعات کاری: 9 صبح تا 11 شب</p>
+        </div>
+    </div>
+
+    <!-- SMS Modal -->
+    <div id="smsModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-button" data-modal-close>&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">پیامک‌های شما</h3>
+            <div id="smsList" class="text-lg text-gray-300 text-right max-h-60 overflow-y-auto custom-scrollbar">
+                <!-- SMS messages will be inserted here by JavaScript -->
+                <p class="text-gray-400">پیامکی دریافت نشده است.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Us Modal -->
+    <div id="contactModal" class="modal-overlay">
+        <div class="modal-content text-center">
+            <button class="close-button" data-modal-close>&times;</button>
+            <h3 class="text-2xl font-bold mb-4 text-white">ارتباط با ما</h3>
+            <p class="text-lg text-gray-300 mb-2">شماره تماس: ۰۹۳۰۴۶۸۹۲۸۱</p>
+            <p class="text-lg text-gray-300">مدیریت: احمد ترابی</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Get all sections and elements
+            const authSection = document.getElementById('authSection');
+            const nameInputSection = document.getElementById('nameInputSection');
+            const orderSection = document.getElementById('orderSection');
+            const welcomeMessage1 = document.getElementById('welcomeMessage1');
+            const welcomeMessage2 = document.getElementById('welcomeMessage2');
+            const welcomeMessagesContainer = welcomeMessage1.parentElement; // The div wrapping welcome messages
+
+            // Authentication elements
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            const sendCodeBtn = document.getElementById('sendCodeBtn');
+            const phoneInputContainer = document.getElementById('phoneInputContainer');
+            const codeInputContainer = document.getElementById('codeInputContainer');
+            const verificationCodeInput = document.getElementById('verificationCode');
+            const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+            const resendCodeBtn = document.getElementById('resendCodeBtn'); // New resend button
+            const countdownTimerDisplay = document.getElementById('countdownTimer'); // New timer display
+            const smsSentMessageBox = document.getElementById('smsSentMessageBox');
+            const phoneError = document.getElementById('phoneError');
+            const codeError = document.getElementById('codeError');
+
+            // Name input elements
+            const firstNameInput = document.getElementById('firstName');
+            const lastNameInput = document.getElementById('lastName');
+            const continueToOrderBtn = document.getElementById('continueToOrderBtn');
+            const nameError = document.getElementById('nameError');
+
+            // Order elements
+            const orderGreeting = document.getElementById('orderGreeting');
+            const flavorQuantityInputs = document.querySelectorAll('.flavor-quantity');
+            const quantityButtons = document.querySelectorAll('.quantity-btn');
+            const submitOrderBtn = document.getElementById('submitOrderBtn');
+            const orderConfirmation = document.getElementById('orderConfirmation');
+            const confirmationText = document.getElementById('confirmationText');
+            const totalPriceSpan = document.getElementById('totalPrice'); // This is the live total
+            const finalTotalPriceSpan = document.getElementById('finalTotalPrice'); // This is the total in confirmation
+            const cardNumberSpan = document.getElementById('cardNumber');
+            const copyCardBtn = document.getElementById('copyCardBtn');
+            const telegramLink = document.getElementById('telegramLink');
+            const eitaaLink = document.getElementById('eitaaLink');
+            const eitaaCopyTextDiv = document.getElementById('eitaaCopyText');
+            const eitaaMessageContentSpan = document.getElementById('eitaaMessageContent');
+            const copyEitaaBtn = document.getElementById('copyEitaaBtn');
+
+
+            // Menu and Modal elements
+            const ellipsisButton = document.getElementById('ellipsisButton');
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const addressMenuItem = document.getElementById('addressMenuItem');
+            const smsMenuItem = document.getElementById('smsMenuItem');
+            const contactMenuItem = document.getElementById('contactMenuItem');
+            const addressModal = document.getElementById('addressModal');
+            const smsModal = document.getElementById('smsModal');
+            const contactModal = document.getElementById('contactModal');
+            const smsList = document.getElementById('smsList');
+            const closeButtons = document.querySelectorAll('[data-modal-close]');
+            const globalSmsNotificationCount = document.getElementById('globalSmsNotificationCount');
+            const menuSmsNotificationCount = document.getElementById('menuSmsNotificationCount');
+
+
+            let generatedCode = ''; // To store the simulated verification code
+            let userPhoneNumber = '';
+            let userFirstName = '';
+            let userLastName = '';
+            let simulatedSmsMessages = []; // To store simulated SMS messages
+            let currentOrderDetails = []; // To store selected flavors for Telegram/Eitaa message
+            let isConfirmationThemeDark = true; // For alternating confirmation box theme
+            let unreadSmsCount = 0; // For notification dot
+            let countdownInterval; // For timer
+
+            // --- Section Visibility Management ---
+            function showSection(sectionId) {
+                // Hide all sections first
+                document.querySelectorAll('.section').forEach(section => {
+                    section.style.display = 'none';
+                });
+                // Show the requested section
+                document.getElementById(sectionId).style.display = 'block';
+
+                // Adjust body background based on section
+                if (sectionId === 'orderSection') {
+                    document.body.classList.add('order-mode');
+                } else {
+                    document.body.classList.remove('order-mode');
+                }
+            }
+
+            // Initial state: Show authentication section
+            showSection('authSection');
+
+            // --- Welcome Message Animation Logic ---
+            let currentWelcomeMessageIndex = 0; // 0 for "به کافه وگ خوش آمدید", 1 for "اینجا طعم خوشبختی رو میچشی"
+            const welcomeMessages = [welcomeMessage1, welcomeMessage2];
+
+            function animateWelcomeMessages() {
+                // Hide all messages first
+                welcomeMessages.forEach(msg => {
+                    msg.classList.remove('welcome-initial-animation', 'welcome-animated');
+                    msg.classList.add('opacity-0', 'translate-x-full');
+                });
+
+                const currentMessage = welcomeMessages[currentWelcomeMessageIndex];
+                currentMessage.classList.add('welcome-initial-animation');
+                currentMessage.classList.remove('opacity-0', 'translate-x-full');
+
+                // After initial slide-in, add the continuous wave effect
+                currentMessage.addEventListener('animationend', function handler() {
+                    currentMessage.classList.remove('welcome-initial-animation');
+                    currentMessage.classList.add('welcome-animated');
+                    currentMessage.removeEventListener('animationend', handler);
+                }, { once: true }); // Ensure listener runs only once
+
+                // Switch message for next cycle
+                currentWelcomeMessageIndex = (currentWelcomeMessageIndex + 1) % welcomeMessages.length;
+            }
+
+            // Start the initial animation and then set interval for alternating messages
+            animateWelcomeMessages(); // Initial call
+            setInterval(animateWelcomeMessages, 8000); // Every 8 seconds, switch message
+
+            // --- SMS Notification Logic ---
+            function updateSmsNotification() {
+                if (unreadSmsCount > 0) {
+                    globalSmsNotificationCount.textContent = unreadSmsCount;
+                    globalSmsNotificationCount.style.display = 'block';
+                    menuSmsNotificationCount.textContent = unreadSmsCount;
+                    menuSmsNotificationCount.style.display = 'inline-block';
+                } else {
+                    globalSmsNotificationCount.style.display = 'none';
+                    menuSmsNotificationCount.style.display = 'none';
+                }
+            }
+
+            // --- Authentication Logic ---
+            function isValidIranianPhoneNumber(number) {
+                return /^09\d{9}$/.test(number);
+            }
+
+            function generateRandomCode() {
+                return Math.floor(1000 + Math.random() * 9000).toString();
+            }
+
+            function startCountdown(duration) {
+                let timer = duration;
+                countdownTimerDisplay.textContent = `(${timer} ثانیه)`;
+                resendCodeBtn.classList.add('hidden');
+                verifyCodeBtn.classList.remove('hidden');
+                verificationCodeInput.disabled = false;
+
+                clearInterval(countdownInterval); // Clear any existing interval
+                countdownInterval = setInterval(() => {
+                    timer--;
+                    countdownTimerDisplay.textContent = `(${timer} ثانیه)`;
+                    if (timer <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownTimerDisplay.textContent = '';
+                        verifyCodeBtn.classList.add('hidden');
+                        resendCodeBtn.classList.remove('hidden');
+                        verificationCodeInput.disabled = true; // Disable input after timeout
+                        codeError.textContent = "زمان شما به پایان رسید. کد را مجدداً ارسال کنید.";
+                        codeError.classList.remove('hidden');
+                    }
+                }, 1000);
+            }
+
+            sendCodeBtn.addEventListener('click', () => {
+                const number = phoneNumberInput.value;
+                phoneError.classList.add('hidden'); // Hide previous error
+                codeError.classList.add('hidden'); // Hide code error if any
+
+                if (isValidIranianPhoneNumber(number)) {
+                    userPhoneNumber = number; // Store phone number
+                    generatedCode = generateRandomCode();
+
+                    // Add simulated SMS to the list
+                    simulatedSmsMessages.push({
+                        type: 'verification',
+                        code: generatedCode,
+                        timestamp: new Date().toLocaleTimeString('fa-IR')
+                    });
+                    unreadSmsCount++;
+                    updateSmsNotification(); // Update notification dot
+
+                    // Show SMS sent message (now persistent)
+                    smsSentMessageBox.classList.remove('hidden');
+
+                    // Transition to code input
+                    phoneInputContainer.classList.add('hidden');
+                    codeInputContainer.classList.remove('hidden');
+                    verificationCodeInput.value = ''; // Clear previous code
+                    verificationCodeInput.focus(); // Focus on code input
+                    startCountdown(120); // Start 2-minute timer
+                } else {
+                    phoneError.classList.remove('hidden');
+                }
+            });
+
+            resendCodeBtn.addEventListener('click', () => {
+                sendCodeBtn.click(); // Simply re-trigger the send code logic
+            });
+
+
+            verifyCodeBtn.addEventListener('click', () => {
+                const enteredCode = verificationCodeInput.value;
+                codeError.classList.add('hidden'); // Hide previous error
+
+                if (enteredCode === generatedCode) {
+                    clearInterval(countdownInterval); // Stop the timer
+                    smsSentMessageBox.classList.add('hidden'); // Hide the persistent message
+                    showSection('nameInputSection');
+                    firstNameInput.focus();
+                } else {
+                    codeError.textContent = "کد وارد شده صحیح نیست.";
+                    codeError.classList.remove('hidden');
+                }
+            });
+
+            // Allow pressing Enter in phone number input to send code
+            phoneNumberInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    sendCodeBtn.click();
+                }
+            });
+
+            // Allow pressing Enter in verification code input to verify
+            verificationCodeInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    verifyCodeBtn.click();
+                }
+            });
+
+            // --- Name Input Logic ---
+            continueToOrderBtn.addEventListener('click', () => {
+                userFirstName = firstNameInput.value.trim();
+                userLastName = lastNameInput.value.trim();
+                nameError.classList.add('hidden');
+
+                if (userFirstName && userLastName) {
+                    orderGreeting.textContent = `${userFirstName} عزیز، طعم بستنی که میخوای رو انتخاب کن`;
+                    showSection('orderSection');
+                    calculateTotalPrice(); // Initialize total price on order page load
+                } else {
+                    nameError.classList.remove('hidden');
+                }
+            });
+
+            // Allow pressing Enter in name/surname inputs to continue
+            firstNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    lastNameInput.focus();
+                }
+            });
+            lastNameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    continueToOrderBtn.click();
+                }
+            });
+
+            // --- Order Section Logic ---
+            function calculateTotalPrice() {
+                let total = 0;
+                flavorQuantityInputs.forEach(input => {
+                    const quantity = parseInt(input.value, 10);
+                    const price = parseInt(input.dataset.price, 10);
+                    total += quantity * price;
+                });
+                totalPriceSpan.textContent = total.toLocaleString('fa-IR'); // Format with Persian numbers
+                return total; // Return the calculated total
+            }
+
+            // Attach event listeners to quantity buttons and input changes
+            quantityButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const input = button.closest('.flavor-card').querySelector('.flavor-quantity');
+                    let currentValue = parseInt(input.value, 10);
+                    const action = button.dataset.action;
+
+                    if (action === 'increase') {
+                        input.value = currentValue + 1;
+                    } else if (action === 'decrease' && currentValue > 0) {
+                        input.value = currentValue - 1;
+                    }
+                    calculateTotalPrice(); // Recalculate total on quantity change
+                });
+            });
+
+            flavorQuantityInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    // Ensure input is a non-negative number
+                    if (parseInt(input.value, 10) < 0 || isNaN(parseInt(input.value, 10))) {
+                        input.value = 0;
+                    }
+                    calculateTotalPrice();
+                });
+            });
+
+            submitOrderBtn.addEventListener('click', () => {
+                currentOrderDetails = []; // Reset for new order
+                let hasSelections = false;
+                let totalOrderPrice = 0;
+
+                flavorQuantityInputs.forEach(input => {
+                    const flavor = input.dataset.flavor;
+                    const quantity = parseInt(input.value, 10);
+                    const price = parseInt(input.dataset.price, 10);
+                    if (quantity > 0) {
+                        currentOrderDetails.push({ flavor, quantity, price });
+                        hasSelections = true;
+                        totalOrderPrice += quantity * price;
+                    }
+                });
+
+                if (!hasSelections) {
+                    confirmationText.textContent = "لطفاً حداقل یک طعم بستنی را انتخاب کنید.";
+                    orderConfirmation.classList.remove('hidden');
+                    // Apply red theme for error
+                    orderConfirmation.classList.remove('confirmation-theme-dark', 'confirmation-theme-light');
+                    orderConfirmation.classList.add('bg-red-100', 'text-red-800');
+                    // Error message should also be persistent until user interacts or corrects
+                    return;
+                }
+
+                // Construct the order message for console/simulated SMS
+                let orderMessage = `سفارش جدید از کافه وگ:\n`;
+                orderMessage += `نام: ${userFirstName} ${userLastName}\n`;
+                orderMessage += `شماره: ${userPhoneNumber}\n`;
+                orderMessage += `بستنی‌های رولی:\n`;
+                currentOrderDetails.forEach(item => {
+                    orderMessage += `- ${item.flavor}: ${item.quantity} عدد (${item.quantity * item.price} تومان)\n`;
+                });
+                orderMessage += `جمع کل: ${totalOrderPrice} تومان\n`;
+                orderMessage += `\nسفارش شما با موفقیت ثبت شد.`;
+
+                // Construct message for Telegram/Eitaa
+                let telegramEitaaMessage = `من بستنی رولی با این طعم‌های: `;
+                currentOrderDetails.forEach((item, index) => {
+                    telegramEitaaMessage += `${item.flavor} (${item.quantity} عدد)`;
+                    if (index < currentOrderDetails.length - 1) {
+                        telegramEitaaMessage += "، ";
+                    }
+                });
+                telegramEitaaMessage += ` ثبت سفارش کرده‌ام و تا دقایقی دیگر برای شما فیش رسید خرید خود را ارسال می‌نمایم.`;
+
+                // Update Telegram and Eitaa links
+                telegramLink.href = `https://t.me/09158789133?text=${encodeURIComponent(telegramEitaaMessage)}`;
+                eitaaLink.href = `https://eitaa.com/09029330848`; // Eitaa does not support pre-filled text in URL
+                eitaaMessageContentSpan.textContent = telegramEitaaMessage;
+                eitaaCopyTextDiv.classList.remove('hidden'); // Show Eitaa copy text
+
+                // Simulate sending the order to the specified number
+                const targetPhoneNumber = "09029330848";
+                console.log(`Simulating SMS to ${targetPhoneNumber}:`);
+                console.log(orderMessage);
+
+                // Add simulated order confirmation SMS to the list
+                simulatedSmsMessages.push({
+                    type: 'order',
+                    message: `سفارش شما با موفقیت ثبت و به شماره ${targetPhoneNumber} ارسال شد.`,
+                    details: orderMessage, // Store full details for debugging/display
+                    timestamp: new Date().toLocaleTimeString('fa-IR')
+                });
+                unreadSmsCount++;
+                updateSmsNotification(); // Update notification dot
+
+                confirmationText.textContent = `سفارش شما با موفقیت ثبت و به شماره ${targetPhoneNumber} ارسال شد.`;
+                finalTotalPriceSpan.textContent = totalOrderPrice.toLocaleString('fa-IR'); // Update total price in confirmation
+
+                orderConfirmation.classList.remove('hidden');
+                // Apply alternating theme
+                orderConfirmation.classList.remove('bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'confirmation-theme-dark', 'confirmation-theme-light');
+                if (isConfirmationThemeDark) {
+                    orderConfirmation.classList.add('confirmation-theme-dark');
+                } else {
+                    orderConfirmation.classList.add('confirmation-theme-light');
+                }
+                isConfirmationThemeDark = !isConfirmationThemeDark; // Toggle for next time
+
+                // No setTimeout or opacity transition for persistence
+
+                // Reset quantities after order (optional)
+                flavorQuantityInputs.forEach(input => {
+                    input.value = 0;
+                });
+                calculateTotalPrice(); // Reset displayed total
+            });
+
+            // --- Copy to Clipboard Functions ---
+            function copyToClipboard(text, successMessage = "کپی شد!") {
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    // Using custom message box instead of alert for better UX
+                    const messageBox = document.createElement('div');
+                    messageBox.textContent = successMessage;
+                    messageBox.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background-color: rgba(0, 0, 0, 0.7);
+                        color: white;
+                        padding: 10px 20px;
+                        border-radius: 8px;
+                        z-index: 9999;
+                        opacity: 0;
+                        transition: opacity 0.5s ease-out;
+                    `;
+                    document.body.appendChild(messageBox);
+                    setTimeout(() => { messageBox.style.opacity = '1'; }, 10);
+                    setTimeout(() => {
+                        messageBox.style.opacity = '0';
+                        messageBox.addEventListener('transitionend', () => messageBox.remove(), { once: true });
+                    }, 2000); // Message disappears after 2 seconds
+
+                } catch (err) {
+                    console.error('Failed to copy text: ', err);
+                    alert("خطا در کپی کردن."); // Fallback to alert if custom message fails
+                } finally {
+                    document.body.removeChild(textarea);
+                }
+            }
+
+            copyCardBtn.addEventListener('click', () => {
+                copyToClipboard(cardNumberSpan.textContent.replace(/\s/g, ''), "شماره کارت کپی شد!");
+            });
+
+            cardNumberSpan.addEventListener('click', () => {
+                copyToClipboard(cardNumberSpan.textContent.replace(/\s/g, ''), "شماره کارت کپی شد!");
+            });
+
+            copyEitaaBtn.addEventListener('click', () => {
+                copyToClipboard(eitaaMessageContentSpan.textContent, "متن آماده برای ایتا کپی شد!");
+            });
+
+            eitaaMessageContentSpan.addEventListener('click', () => {
+                copyToClipboard(eitaaMessageContentSpan.textContent, "متن آماده برای ایتا کپی شد!");
+            });
+
+
+            // --- Modal and Dropdown Logic ---
+            ellipsisButton.addEventListener('click', (event) => {
+                dropdownMenu.classList.toggle('open');
+                event.stopPropagation(); // Prevent click from closing immediately
+            });
+
+            // Close dropdown if clicked outside
+            document.addEventListener('click', (event) => {
+                if (!dropdownMenu.contains(event.target) && !ellipsisButton.contains(event.target)) {
+                    dropdownMenu.classList.remove('open');
+                }
+            });
+
+            function openModal(modal) {
+                modal.classList.add('open');
+                dropdownMenu.classList.remove('open'); // Close dropdown when modal opens
+            }
+
+            function closeModal(modal) {
+                modal.classList.remove('open');
+            }
+
+            addressMenuItem.addEventListener('click', () => {
+                openModal(addressModal);
+            });
+
+            smsMenuItem.addEventListener('click', () => {
+                // Clear previous SMS list
+                smsList.innerHTML = '';
+                if (simulatedSmsMessages.length === 0) {
+                    smsList.innerHTML = '<p class="text-gray-400">پیامکی دریافت نشده است.</p>';
+                } else {
+                    // Display messages in reverse chronological order
+                    [...simulatedSmsMessages].reverse().forEach(sms => {
+                        const p = document.createElement('p');
+                        p.classList.add('mb-2', 'p-2', 'rounded-md', 'bg-gray-700');
+                        if (sms.type === 'verification') {
+                            p.innerHTML = `<span class="font-bold text-green-400">کد تایید:</span> ${sms.code} <span class="text-xs text-gray-500 mr-2">(${sms.timestamp})</span>`;
+                        } else if (sms.type === 'order') {
+                             p.innerHTML = `<span class="font-bold text-blue-400">سفارش شما:</span> ${sms.message} <span class="text-xs text-gray-500 mr-2">(${sms.timestamp})</span>`;
+                        }
+                        smsList.appendChild(p);
+                    });
+                }
+                unreadSmsCount = 0; // Reset unread count when SMS modal is opened
+                updateSmsNotification();
+                openModal(smsModal);
+            });
+
+            contact
